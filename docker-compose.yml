@@ -4,7 +4,7 @@ networks:
   laravel:
 
 services:
-  site:
+  nginx:
     build:
       context: .
       dockerfile: nginx.dockerfile
@@ -20,19 +20,23 @@ services:
       - laravel
 
   mysql:
-    image: mysql:5.7.29
+    image: mysql
     container_name: mysql
     restart: unless-stopped
     tty: true
+    command: --default-authentication-plugin=mysql_native_password
     ports:
       - "3306:3306"
     environment:
-      MYSQL_DATABASE: homestead
-      MYSQL_USER: homestead
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: 123456
+      MYSQL_ROOT_PASSWORD: 123456
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
+    volumes:
+      - ./mysql/conf.d:/etc/mysql/conf.d
+      - ./mysql/data:/var/lib/mysql
     networks:
       - laravel
 
@@ -61,15 +65,15 @@ services:
     user: laravel
     networks:
       - laravel
-    entrypoint: ['composer', '--ignore-platform-reqs']
+    entrypoint: [ 'composer' ]
 
   npm:
-    image: node:13.7
+    image: node
     container_name: npm
     volumes:
       - ./src:/var/www/html
     working_dir: /var/www/html
-    entrypoint: ['npm']
+    entrypoint: [ 'npm' ]
 
   artisan:
     build:
@@ -82,6 +86,6 @@ services:
       - mysql
     working_dir: /var/www/html
     user: laravel
-    entrypoint: ['php', '/var/www/html/artisan']
+    entrypoint: [ 'php', '/var/www/html/artisan' ]
     networks:
       - laravel
